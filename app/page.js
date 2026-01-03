@@ -1,131 +1,316 @@
 "use client";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import WhatsAppQR from "./Component/WhatsAppQR";
 import { FiArrowUp, FiChevronDown } from "react-icons/fi";
 
+// تعريف الثوابت خارج المكون لتجنب إعادة الإنشاء
+const COMPANY_POLICIES = [
+  "✅ الشحنات يجب أن تكون مغلفة بشكل آمن ومتين",
+  "✅ يجب إرفاق فاتورة أصلية مع كل شحنة",
+  "✅ الالتزام بالمواعيد المتفق عليها للاستلام",
+  "✅ التأكد من مطابقة المحتويات للبيانات المدخلة",
+  "✅ في حالة التأخير، يجب إبلاغ العميل قبل الموعد",
+  "✅ الشحنات الخطرة أو الممنوعة غير مسموح بها",
+  "✅ يجب تسليم الشحنات في العبوة الأصلية",
+  "✅ الحق في رفض الشحنات غير المطابقة للشروط"
+];
+
+const MAX_CONTENT_LENGTH = 150;
+const INITIAL_FORM_STATE = {
+  customerName: "",
+  brandName: "",
+  phone: "",
+  pickupLocation: "",
+  shipments: "",
+  pickupDate: "",
+  content: "" 
+};
+
+// مكونات فرعية محسنة
+const LogoComponent = () => {
+  const handleImageError = useCallback((e) => {
+    e.target.onerror = null;
+    e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='40' viewBox='0 0 64 40'%3E%3Ctext x='32' y='25' text-anchor='middle' font-family='Arial' font-size='20' font-weight='bold' fill='%2306b6d4'%3E7TE%3C/text%3E%3C/svg%3E";
+  }, []);
+
+  return (
+    <div className="w-14 h-14 rounded-xl overflow-hidden border-2 border-cyan-500/20 flex items-center justify-center bg-gradient-to-br from-gray-900 to-black">
+      <img 
+        src="/logo.png" 
+        alt="Logo" 
+        className="w-16 h-10 object-contain"
+        loading="lazy"
+        onError={handleImageError}
+      />
+    </div>
+  );
+};
+
+const HeaderButton = ({ onClick, emoji, text, variant = "cyan" }) => {
+  const colors = variant === "blue" 
+    ? "from-blue-600/20 to-cyan-600/20 hover:from-blue-600/30 hover:to-cyan-600/30 border-blue-500/30 hover:border-blue-500/50 text-blue-300"
+    : "from-cyan-600/20 to-blue-600/20 hover:from-cyan-600/30 hover:to-blue-600/30 border-cyan-500/30 hover:border-cyan-500/50 text-cyan-300";
+
+  return (
+    <button
+      onClick={onClick}
+      className={`px-4 py-2 rounded-lg bg-gradient-to-r ${colors} text-sm font-medium transition-all duration-300`}
+    >
+      {emoji} {text}
+    </button>
+  );
+};
+
+const FormInput = ({ label, name, type = "text", value, onChange, placeholder, required = false, min }) => (
+  <div>
+    <label className="block text-sm font-medium text-cyan-300 mb-2">
+      {label}
+    </label>
+    <input
+      type={type}
+      name={name}
+      value={value}
+      onChange={onChange}
+      className="w-full rounded-xl border border-cyan-700 bg-gray-800 px-4 py-3.5 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-300"
+      placeholder={placeholder}
+      required={required}
+      min={min}
+    />
+  </div>
+);
+
+const ContentTextarea = ({ content, contentLength, onChange }) => (
+  <div>
+    <div className="flex items-center justify-between mb-2">
+      <label className="block text-sm font-medium text-cyan-300">
+        محتويات الشحنة
+      </label>
+      <div className={`text-xs ${contentLength > MAX_CONTENT_LENGTH - 50 ? 'text-yellow-400' : 'text-gray-400'}`}>
+        {contentLength} / {MAX_CONTENT_LENGTH} حرف
+      </div>
+    </div>
+    <textarea
+      name="content"
+      value={content}
+      onChange={onChange}
+      className="w-full rounded-xl border border-cyan-700 bg-gray-800 px-4 py-3.5 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-300 min-h-[100px] resize-none"
+      placeholder="وصف محتويات الشحنة (مثال: ملابس - إلكترونيات - مستلزمات منزلية...)"
+      maxLength={MAX_CONTENT_LENGTH}
+      rows="3"
+    />
+    <div className="mt-1 text-xs text-gray-400">
+      {contentLength > MAX_CONTENT_LENGTH - 50 ? (
+        <span className="text-yellow-400">
+          ⚠️ اقتربت من الحد الأقصى للحروف
+        </span>
+      ) : (
+        "يمكنك كتابة وصف مفصل لمحتويات الشحنة"
+      )}
+    </div>
+  </div>
+);
+
+const QRLoadingPlaceholder = ({ onScrollToForm }) => (
+  <div className="text-center">
+    <div className="w-48 h-48 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-gray-800 to-black flex items-center justify-center border border-cyan-800/30 animate-pulse">
+      <div className="text-5xl text-cyan-400/30">📱</div>
+    </div>
+    <p className="text-xl font-medium text-cyan-300 mb-3">⏳ في انتظار البيانات</p>
+    <p className="text-gray-400 max-w-sm">
+      املأ النموذج على اليسار وسيظهر رمز QR هنا تلقائياً
+    </p>
+    <button
+      onClick={onScrollToForm}
+      className="mt-4 px-4 py-2 rounded-lg bg-gradient-to-r from-cyan-600/20 to-blue-600/20 hover:from-cyan-600/30 hover:to-blue-600/30 text-cyan-300 text-sm font-medium transition-all duration-300 border border-cyan-500/30"
+    >
+      📝 الانتقال للنموذج
+    </button>
+  </div>
+);
+
+const Instructions = () => (
+  <div className="mt-8 p-5 rounded-xl bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-500/20">
+    <p className="text-cyan-300 font-medium mb-2">💡 تعليمات الاستخدام:</p>
+    <ol className="text-sm text-gray-400 space-y-1 list-decimal list-inside">
+      <li>املأ جميع الحقول المطلوبة (*)</li>
+      <li>اضغط على "إنشاء رمز الاستلام"</li>
+      <li>امسح رمز QR بكاميرا الهاتف</li>
+      <li>سيفتح واتساب مع الرسالة جاهزة للإرسال</li>
+      <li>الرسالة ترسل تلقائياً للرقم الأساسي</li>
+      <li className="text-cyan-300 font-medium mt-2">
+        ⚠️ ملاحظة: محتويات الشحنة محددة بـ {MAX_CONTENT_LENGTH} حرف كحد أقصى
+      </li>
+    </ol>
+  </div>
+);
+
+const FooterButton = ({ onClick, text, color }) => {
+  const colorClasses = {
+    cyan: "text-cyan-300 hover:text-cyan-400",
+    blue: "text-blue-300 hover:text-blue-400",
+    purple: "text-purple-300 hover:text-purple-400"
+  };
+
+  return (
+    <button
+      onClick={onClick}
+      className={`${colorClasses[color]} transition-all duration-300 text-sm hover:scale-105`}
+    >
+      {text}
+    </button>
+  );
+};
+
+// المكون الرئيسي
 export default function Home() {
-  const [form, setForm] = useState({
-    customerName: "",
-    brandName: "",
-    phone: "",
-    pickupLocation: "",
-    shipments: "",
-    pickupDate: "",
-    content: "" 
-  });
+  const [form, setForm] = useState(INITIAL_FORM_STATE);
   const [showQR, setShowQR] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [contentLength, setContentLength] = useState(0);
-  const maxContentLength = 150;
 
   // Refs للتمرير السلس
   const formRef = useRef(null);
   const qrRef = useRef(null);
   const policiesRef = useRef(null);
 
-  // السياسات الثابتة
-  const companyPolicies = [
-    "✅ الشحنات يجب أن تكون مغلفة بشكل آمن ومتين",
-    "✅ يجب إرفاق فاتورة أصلية مع كل شحنة",
-    "✅ الالتزام بالمواعيد المتفق عليها للاستلام",
-    "✅ التأكد من مطابقة المحتويات للبيانات المدخلة",
-    "✅ في حالة التأخير، يجب إبلاغ العميل قبل الموعد",
-    "✅ الشحنات الخطرة أو الممنوعة غير مسموح بها",
-    "✅ يجب تسليم الشحنات في العبوة الأصلية",
-    "✅ الحق في رفض الشحنات غير المطابقة للشروط"
-  ];
+  // استخدام useMemo للبيانات المشتقة
+  const qrData = useMemo(() => ({ 
+    ...form, 
+    companyPolicies: COMPANY_POLICIES 
+  }), [form]);
 
-  // التحقق من موضع الـ Scroll
+  // استخدام useMemo للقائمة الثابتة
+  const policiesList = useMemo(() => (
+    <div className="space-y-3">
+      {COMPANY_POLICIES.map((policy, index) => (
+        <div 
+          key={index} 
+          className="flex items-start gap-3 p-3 rounded-lg bg-gray-800/50 border border-gray-700 transition-all duration-300 hover:bg-gray-800/70 hover:border-purple-500/30"
+        >
+          <div className="w-6 h-6 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center shrink-0 mt-0.5">
+            <span className="text-xs">✓</span>
+          </div>
+          <p className="text-sm text-gray-300">{policy}</p>
+        </div>
+      ))}
+    </div>
+  ), []);
+
+  // التحقق من موضع الـ Scroll مع throttle
   useEffect(() => {
+    let ticking = false;
+    
     const handleScroll = () => {
-      setShowScrollTop(window.scrollY > 400);
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          setShowScrollTop(window.scrollY > 400);
+          ticking = false;
+        });
+        ticking = true;
+      }
     };
 
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // تحديث عدد الحروف عند تغيير المحتوى
-  useEffect(() => {
-    setContentLength(form.content.length);
-  }, [form.content]);
-
-  // وظائف التمرير السلس
-  const scrollToTop = () => {
+  // استخدام useCallback للوظائف
+  const scrollToTop = useCallback(() => {
     window.scrollTo({
       top: 0,
       behavior: "smooth"
     });
-  };
+  }, []);
 
-  const scrollToForm = () => {
+  const scrollToForm = useCallback(() => {
     formRef.current?.scrollIntoView({
       behavior: "smooth",
       block: "start"
     });
-  };
+  }, []);
 
-  const scrollToQR = () => {
+  const scrollToQR = useCallback(() => {
     qrRef.current?.scrollIntoView({
       behavior: "smooth",
       block: "start"
     });
-  };
+  }, []);
 
-  const scrollToPolicies = () => {
+  const scrollToPolicies = useCallback(() => {
     policiesRef.current?.scrollIntoView({
       behavior: "smooth",
       block: "start"
     });
-  };
+  }, []);
 
-  const handleChange = (e) => {
+  // تحسين handleChange لتجنب إعادة render زائدة
+  const handleChange = useCallback((e) => {
     const { name, value } = e.target;
     
-    // تحديد عدد الحروف لمحتويات الشحنة فقط
     if (name === "content") {
-      if (value.length <= maxContentLength) {
-        setForm(prev => ({ ...prev, [name]: value }));
+      if (value.length <= MAX_CONTENT_LENGTH) {
+        setForm(prev => {
+          if (prev.content === value) return prev;
+          return { ...prev, [name]: value };
+        });
+        setContentLength(value.length);
       }
     } else {
-      setForm(prev => ({ ...prev, [name]: value }));
+      setForm(prev => {
+        if (prev[name] === value) return prev;
+        return { ...prev, [name]: value };
+      });
     }
-  };
+  }, []);
 
-  const openMaps = () => {
+  const openMaps = useCallback(() => {
     window.open("https://www.google.com/maps", "_blank");
-  };
+  }, []);
 
-  const submit = (e) => {
+  const submit = useCallback((e) => {
     e.preventDefault();
     if (!form.phone) {
       alert("⚠️ يرجى إدخال رقم الهاتف أولاً");
       return;
     }
     setShowQR(true);
-    // التمرير تلقائياً إلى QR بعد الإنشاء
-    setTimeout(() => {
+    // استخدام requestAnimationFrame بدلاً من setTimeout
+    requestAnimationFrame(() => {
       scrollToQR();
-    }, 300);
-  };
-
-  const resetForm = () => {
-    setForm({
-      customerName: "",
-      brandName: "",
-      phone: "",
-      pickupLocation: "",
-      shipments: "",
-      pickupDate: "",
-      content: ""
     });
+  }, [form.phone, scrollToQR]);
+
+  const resetForm = useCallback(() => {
+    setForm(INITIAL_FORM_STATE);
     setContentLength(0);
     setShowQR(false);
-    // العودة إلى الفورم
-    setTimeout(() => {
+    requestAnimationFrame(() => {
       scrollToForm();
-    }, 300);
-  };
+    });
+  }, [scrollToForm]);
+
+  // ActionButtons كمكون فرعي
+  const ActionButtons = useMemo(() => (
+    <div className="grid grid-cols-2 gap-4 pt-4">
+      <button
+        type="submit"
+        disabled={contentLength > MAX_CONTENT_LENGTH}
+        className="col-span-2 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white py-4 font-bold text-lg transition-all duration-500 hover:scale-[1.02] active:scale-95 shadow-lg hover:shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+      >
+        🚀 إنشاء رمز الاستلام
+      </button>
+      
+      {showQR && (
+        <button
+          type="button"
+          onClick={resetForm}
+          className="col-span-2 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 py-3 font-medium transition-all duration-300 hover:scale-[1.02]"
+        >
+          🔄 طلب جديد
+        </button>
+      )}
+    </div>
+  ), [contentLength, showQR, resetForm]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 text-white">
@@ -144,17 +329,7 @@ export default function Home() {
       <header className="sticky top-0 z-40 px-6 py-4 bg-black/90 backdrop-blur-lg border-b border-cyan-800/50">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-xl overflow-hidden border-2 border-cyan-500/20 flex items-center justify-center bg-gradient-to-br from-gray-900 to-black">
-              <img 
-                src="/logo.png" 
-                alt="Logo" 
-                className="w-16 h-10 object-contain"
-                onError={(e) => {
-                  e.target.onerror = null;
-                  e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='40' viewBox='0 0 64 40'%3E%3Ctext x='32' y='25' text-anchor='middle' font-family='Arial' font-size='20' font-weight='bold' fill='%2306b6d4'%3E7TE%3C/text%3E%3C/svg%3E";
-                }}
-              />
-            </div>
+            <LogoComponent />
             
             <div>
               <h1 className="text-4xl md:text-5xl font-black bg-gradient-to-r from-cyan-400 via-blue-300 to-cyan-400 bg-clip-text text-transparent">
@@ -171,18 +346,8 @@ export default function Home() {
           </div>
           
           <div className="hidden md:flex items-center gap-4">
-            <button
-              onClick={scrollToForm}
-              className="px-4 py-2 rounded-lg bg-gradient-to-r from-cyan-600/20 to-blue-600/20 hover:from-cyan-600/30 hover:to-blue-600/30 text-cyan-300 text-sm font-medium transition-all duration-300 border border-cyan-500/30 hover:border-cyan-500/50"
-            >
-              📝 النموذج
-            </button>
-            <button
-              onClick={scrollToQR}
-              className="px-4 py-2 rounded-lg bg-gradient-to-r from-blue-600/20 to-cyan-600/20 hover:from-blue-600/30 hover:to-cyan-600/30 text-blue-300 text-sm font-medium transition-all duration-300 border border-blue-500/30 hover:border-blue-500/50"
-            >
-              🔗 QR Code
-            </button>
+            <HeaderButton onClick={scrollToForm} emoji="📝" text="النموذج" />
+            <HeaderButton onClick={scrollToQR} emoji="🔗" text="QR Code" variant="blue" />
           </div>
         </div>
       </header>
@@ -219,52 +384,35 @@ export default function Home() {
               <form onSubmit={submit} className="space-y-6">
                 {/* Basic Info */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  <div>
-                    <label className="block text-sm font-medium text-cyan-300 mb-2">
-                      اسم العميل *
-                    </label>
-                    <input
-                      type="text"
-                      name="customerName"
-                      value={form.customerName}
-                      onChange={handleChange}
-                      className="w-full rounded-xl border border-cyan-700 bg-gray-800 px-4 py-3.5 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-300"
-                      placeholder="أدخل اسم العميل"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-cyan-300 mb-2">
-                      اسم البراند *
-                    </label>
-                    <input
-                      type="text"
-                      name="brandName"
-                      value={form.brandName}
-                      onChange={handleChange}
-                      className="w-full rounded-xl border border-cyan-700 bg-gray-800 px-4 py-3.5 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-300"
-                      placeholder="أدخل اسم البراند"
-                      required
-                    />
-                  </div>
-                </div>
-
-                {/* Phone */}
-                <div>
-                  <label className="block text-sm font-medium text-cyan-300 mb-2">
-                    رقم الواتساب *
-                  </label>
-                  <input
-                    type="tel"
-                    name="phone"
-                    value={form.phone}
+                  <FormInput
+                    label="اسم العميل *"
+                    name="customerName"
+                    value={form.customerName}
                     onChange={handleChange}
-                    className="w-full rounded-xl border border-cyan-700 bg-gray-800 px-4 py-3.5 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-300"
-                    placeholder="مثال: 01234567890"
+                    placeholder="أدخل اسم العميل"
+                    required
+                  />
+
+                  <FormInput
+                    label="اسم البراند *"
+                    name="brandName"
+                    value={form.brandName}
+                    onChange={handleChange}
+                    placeholder="أدخل اسم البراند"
                     required
                   />
                 </div>
+
+                {/* Phone */}
+                <FormInput
+                  label="رقم الواتساب *"
+                  name="phone"
+                  type="tel"
+                  value={form.phone}
+                  onChange={handleChange}
+                  placeholder="مثال: 01234567890"
+                  required
+                />
 
                 {/* Location */}
                 <div>
@@ -294,92 +442,34 @@ export default function Home() {
 
                 {/* Shipments & Date */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  <div>
-                    <label className="block text-sm font-medium text-cyan-300 mb-2">
-                      عدد الشحنات
-                    </label>
-                    <input
-                      type="number"
-                      name="shipments"
-                      value={form.shipments}
-                      onChange={handleChange}
-                      className="w-full rounded-xl border border-cyan-700 bg-gray-800 px-4 py-3.5 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-300"
-                      placeholder="العدد"
-                      min="0"
-                    />
-                  </div>
+                  <FormInput
+                    label="عدد الشحنات"
+                    name="shipments"
+                    type="number"
+                    value={form.shipments}
+                    onChange={handleChange}
+                    placeholder="العدد"
+                    min="0"
+                  />
 
-                  <div>
-                    <label className="block text-sm font-medium text-cyan-300 mb-2">
-                      تاريخ الاستلام
-                    </label>
-                    <input
-                      type="date"
-                      name="pickupDate"
-                      value={form.pickupDate}
-                      onChange={handleChange}
-                      className="w-full rounded-xl border border-cyan-700 bg-gray-800 px-4 py-3.5 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-300"
-                    />
-                  </div>
+                  <FormInput
+                    label="تاريخ الاستلام"
+                    name="pickupDate"
+                    type="date"
+                    value={form.pickupDate}
+                    onChange={handleChange}
+                  />
                 </div>
 
                 {/* محتويات الشحنة مع عداد الحروف */}
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <label className="block text-sm font-medium text-cyan-300">
-                      محتويات الشحنة
-                    </label>
-                    <div className={`text-xs ${contentLength > maxContentLength - 50 ? 'text-yellow-400' : 'text-gray-400'}`}>
-                      {contentLength} / {maxContentLength} حرف
-                    </div>
-                  </div>
-                  <textarea
-                    name="content"
-                    value={form.content}
-                    onChange={handleChange}
-                    className="w-full rounded-xl border border-cyan-700 bg-gray-800 px-4 py-3.5 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all duration-300 min-h-[100px] resize-none"
-                    placeholder="وصف محتويات الشحنة (مثال: ملابس - إلكترونيات - مستلزمات منزلية...)"
-                    maxLength={maxContentLength}
-                    rows="3"
-                  />
-                  <div className="mt-1 text-xs text-gray-400">
-                    {contentLength > maxContentLength - 50 ? (
-                      <span className="text-yellow-400">
-                        ⚠️ اقتربت من الحد الأقصى للحروف
-                      </span>
-                    ) : (
-                      "يمكنك كتابة وصف مفصل لمحتويات الشحنة"
-                    )}
-                  </div>
-                </div>
+                <ContentTextarea
+                  content={form.content}
+                  contentLength={contentLength}
+                  onChange={handleChange}
+                />
 
                 {/* Action Buttons */}
-                <div className="grid grid-cols-2 gap-4 pt-4">
-                  <button
-                    type="submit"
-                    disabled={contentLength > maxContentLength}
-                    className="col-span-2 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white py-4 font-bold text-lg transition-all duration-500 hover:scale-[1.02] active:scale-95 shadow-lg hover:shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-                    onClick={() => {
-                      if (contentLength <= maxContentLength) {
-                        setTimeout(() => {
-                          scrollToQR();
-                        }, 1000);
-                      }
-                    }}
-                  >
-                    🚀 إنشاء رمز الاستلام
-                  </button>
-                  
-                  {showQR && (
-                    <button
-                      type="button"
-                      onClick={resetForm}
-                      className="col-span-2 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 py-3 font-medium transition-all duration-300 hover:scale-[1.02]"
-                    >
-                      🔄 طلب جديد
-                    </button>
-                  )}
-                </div>
+                {ActionButtons}
               </form>
             </div>
 
@@ -394,20 +484,7 @@ export default function Home() {
                   <p className="text-gray-400">شروط يجب الالتزام بها</p>
                 </div>
               </div>
-
-              <div className="space-y-3">
-                {companyPolicies.map((policy, index) => (
-                  <div 
-                    key={index} 
-                    className="flex items-start gap-3 p-3 rounded-lg bg-gray-800/50 border border-gray-700 transition-all duration-300 hover:bg-gray-800/70 hover:border-purple-500/30"
-                  >
-                    <div className="w-6 h-6 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center shrink-0 mt-0.5">
-                      <span className="text-xs">✓</span>
-                    </div>
-                    <p className="text-sm text-gray-300">{policy}</p>
-                  </div>
-                ))}
-              </div>
+              {policiesList}
             </div>
           </div>
 
@@ -427,41 +504,15 @@ export default function Home() {
             <div className="min-h-[400px] flex flex-col items-center justify-center p-6 rounded-xl bg-gradient-to-br from-gray-900/50 to-black/50 border-2 border-dashed border-cyan-800/30">
               {showQR ? (
                 <div className="w-full">
-                  <WhatsAppQR data={{ ...form, companyPolicies }} />
+                  <WhatsAppQR data={qrData} />
                 </div>
               ) : (
-                <div className="text-center">
-                  <div className="w-48 h-48 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-gray-800 to-black flex items-center justify-center border border-cyan-800/30 animate-pulse">
-                    <div className="text-5xl text-cyan-400/30">📱</div>
-                  </div>
-                  <p className="text-xl font-medium text-cyan-300 mb-3">⏳ في انتظار البيانات</p>
-                  <p className="text-gray-400 max-w-sm">
-                    املأ النموذج على اليسار وسيظهر رمز QR هنا تلقائياً
-                  </p>
-                  <button
-                    onClick={scrollToForm}
-                    className="mt-4 px-4 py-2 rounded-lg bg-gradient-to-r from-cyan-600/20 to-blue-600/20 hover:from-cyan-600/30 hover:to-blue-600/30 text-cyan-300 text-sm font-medium transition-all duration-300 border border-cyan-500/30"
-                  >
-                    📝 الانتقال للنموذج
-                  </button>
-                </div>
+                <QRLoadingPlaceholder onScrollToForm={scrollToForm} />
               )}
             </div>
 
             {/* Instructions */}
-            <div className="mt-8 p-5 rounded-xl bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-500/20">
-              <p className="text-cyan-300 font-medium mb-2">💡 تعليمات الاستخدام:</p>
-              <ol className="text-sm text-gray-400 space-y-1 list-decimal list-inside">
-                <li>املأ جميع الحقول المطلوبة (*)</li>
-                <li>اضغط على "إنشاء رمز الاستلام"</li>
-                <li>امسح رمز QR بكاميرا الهاتف</li>
-                <li>سيفتح واتساب مع الرسالة جاهزة للإرسال</li>
-                <li>الرسالة ترسل تلقائياً للرقم الأساسي</li>
-                <li className="text-cyan-300 font-medium mt-2">
-                  ⚠️ ملاحظة: محتويات الشحنة محددة بـ {maxContentLength} حرف كحد أقصى
-                </li>
-              </ol>
-            </div>
+            <Instructions />
           </div>
         </div>
       </main>
@@ -470,32 +521,17 @@ export default function Home() {
       <footer className="mt-12 px-6 py-5 border-t border-gray-800 bg-black/50">
         <div className="max-w-7xl mx-auto text-center">
           <div className="flex flex-col md:flex-row items-center justify-center gap-4 mb-4">
-            <button
-              onClick={scrollToForm}
-              className="text-cyan-300 hover:text-cyan-400 transition-all duration-300 text-sm hover:scale-105"
-            >
-              📝 النموذج
-            </button>
+            <FooterButton onClick={scrollToForm} text="📝 النموذج" color="cyan" />
             <span className="text-gray-600 hidden md:inline">•</span>
-            <button
-              onClick={scrollToQR}
-              className="text-blue-300 hover:text-blue-400 transition-all duration-300 text-sm hover:scale-105"
-            >
-              🔗 QR Code
-            </button>
+            <FooterButton onClick={scrollToQR} text="🔗 QR Code" color="blue" />
             <span className="text-gray-600 hidden md:inline">•</span>
-            <button
-              onClick={scrollToPolicies}
-              className="text-purple-300 hover:text-purple-400 transition-all duration-300 text-sm hover:scale-105"
-            >
-              📋 السياسات
-            </button>
+            <FooterButton onClick={scrollToPolicies} text="📋 السياسات" color="purple" />
           </div>
           <p className="text-gray-500 text-sm">
             نظام إدارة طلبات البيك أب © {new Date().getFullYear()} | جميع الحقوق محفوظة
           </p>
           <p className="text-gray-600 text-xs mt-2">
-            محتويات الشحنة محددة بـ {maxContentLength} حرف لتجنب مشاكل الـ QR Code
+            محتويات الشحنة محددة بـ {MAX_CONTENT_LENGTH} حرف لتجنب مشاكل الـ QR Code
           </p>
         </div>
       </footer>
