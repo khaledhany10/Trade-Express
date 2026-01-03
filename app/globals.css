@@ -80,3 +80,30 @@ body > div.fixed.bottom-0.right-0 {
 body > div:last-child {
   display: none !important;
 }
+
+
+/* إزالة أي blur أو overlay على QR Code */
+.qr-container *,
+[class*="qr"] *,
+[class*="code"] *,
+[class*="QR"] * {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  filter: none !important;
+  -webkit-filter: none !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* تأكد أن QR Code واضح */
+div:has(> svg), 
+div:has(canvas) {
+  backdrop-filter: none !important;
+}
+
+/* إزالة أي overlay */
+div[class*="overlay"],
+div[class*="blur"],
+div[class*="backdrop"] {
+  display: none !important;
+}
