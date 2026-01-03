@@ -1,26 +1,82 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Smooth Scroll */
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 80px; /* مسافة من الأعلى للعناصر */
+}
+
+/* تحسينات Scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #06b6d4 #111827;
+}
+
+/* Webkit Browsers (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #111827;
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(45deg, #06b6d4, #3b82f6);
+  border-radius: 5px;
+  border: 2px solid #111827;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(45deg, #3b82f6, #06b6d4);
+}
+
+/* على الهواتف */
+@media (max-width: 768px) {
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  html {
+    scroll-padding-top: 60px;
+  }
+}
+
+/* تأثيرات الانتقال */
+.transition-smooth {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.transition-all-smooth {
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+
+/* إخفاء علامة Next.js Development Indicator */
+div[data-nextjs-dev-indicator] {
+  display: none !important;
+}
+
+/* إخفاء نص Turbopack و Static */
+div[data-nextjs-dev-indicator] span {
+  display: none !important;
+}
+
+/* إخفاء أي عنصر في الزاوية اليمنى السفلى */
+body > div.fixed.bottom-0.right-0 {
+  display: none !important;
+}
+
+/* أو بشكل عام */
+body > div:last-child {
+  display: none !important;
 }
