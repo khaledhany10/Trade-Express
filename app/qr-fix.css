@@ -1,0 +1,45 @@
+/* qr-fix.css */
+/* حل مشكلة QR Code على الموبايل */
+
+/* إصلاح كامل لمشكلة blur على الموبايل */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* استثناء كامل للرسومات من أي تأثيرات */
+svg, 
+canvas, 
+img, 
+.react-qr-code, 
+[data-testid="qr-code"] {
+  image-rendering: crisp-edges !important;
+  image-rendering: -webkit-optimize-contrast !important;
+  image-rendering: -moz-crisp-edges !important;
+  shape-rendering: geometricPrecision !important;
+  text-rendering: optimizeLegibility !important;
+  -webkit-font-smoothing: auto !important;
+  -moz-osx-font-smoothing: auto !important;
+}
+
+/* التأكد من وضوح QR Code على الموبايل */
+@media (max-width: 768px) {
+  body {
+    -webkit-font-smoothing: antialiased;
+  }
+  
+  /* جعل QR Code أبيض ناصع بدون تأثيرات */
+  .qr-container svg,
+  .qr-container canvas {
+    background: #FFFFFF !important;
+    border: 10px solid #FFFFFF !important;
+    box-shadow: 0 0 0 10px #FFFFFF !important;
+    filter: none !important;
+    -webkit-filter: none !important;
+  }
+}
+
+/* إخفاء علامات Next.js التطويرية */
+[data-nextjs-dev-indicator] {
+  display: none !important;
+}

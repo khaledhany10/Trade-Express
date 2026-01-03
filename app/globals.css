@@ -1,5 +1,5 @@
 @import "tailwindcss";
-
+@import './qr-fix.css';
 
 body {
   background: var(--background);
@@ -60,50 +60,49 @@ html {
   transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-
-/* إخفاء علامة Next.js Development Indicator */
-div[data-nextjs-dev-indicator] {
-  display: none !important;
+html {
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
 }
 
-/* إخفاء نص Turbopack و Static */
-div[data-nextjs-dev-indicator] span {
-  display: none !important;
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
-/* إخفاء أي عنصر في الزاوية اليمنى السفلى */
-body > div.fixed.bottom-0.right-0 {
-  display: none !important;
+/* إصلاح تام لـ QR Code */
+.qr-fix {
+  image-rendering: crisp-edges;
+  image-rendering: -webkit-optimize-contrast;
+  shape-rendering: crispEdges;
 }
 
-/* أو بشكل عام */
-body > div:last-child {
-  display: none !important;
-}
-
-
-/* إزالة أي blur أو overlay على QR Code */
-.qr-container *,
-[class*="qr"] *,
-[class*="code"] *,
-[class*="QR"] * {
+/* منع أي تأثير blur على الصفحة */
+.no-blur {
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
   filter: none !important;
   -webkit-filter: none !important;
-  opacity: 1 !important;
-  visibility: visible !important;
 }
 
-/* تأكد أن QR Code واضح */
-div:has(> svg), 
-div:has(canvas) {
-  backdrop-filter: none !important;
+/* خلفية التطبيق */
+body {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  min-height: 100vh;
+  direction: rtl;
 }
 
-/* إزالة أي overlay */
-div[class*="overlay"],
-div[class*="blur"],
-div[class*="backdrop"] {
-  display: none !important;
+/* تحسينات للشاشات الصغيرة */
+@media (max-width: 640px) {
+  .qr-container {
+    transform: scale(0.95);
+    transform-origin: center;
+  }
+  
+  /* زيادة وضوح QR على الموبايل */
+  svg[data-testid="qr-code"] {
+    image-rendering: pixelated !important;
+    -webkit-image-rendering: pixelated !important;
+  }
 }
