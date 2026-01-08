@@ -106,3 +106,23 @@ body {
     -webkit-image-rendering: pixelated !important;
   }
 }
+
+
+/* في globals.css */
+@keyframes bounce {
+  0%, 100% {
+    transform: translate(-50%, 0);
+  }
+  50% {
+    transform: translate(-50%, -10px);
+  }
+}
+
+.animate-bounce {
+  animation: bounce 0.5s ease-in-out 2;
+}
+
+.dir-ltr {
+  direction: ltr;
+  text-align: left;
+}
