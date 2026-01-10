@@ -10,8 +10,6 @@ export default function FormContainer({
   isSubmitting,
   filledFieldsCount,
   isFormComplete,
-  CAIRO_DISTRICTS,
-  LANDMARKS,
   CONTENT_OPTIONS
 }) {
   // الحصول على المحتوى المحدد
@@ -105,53 +103,33 @@ export default function FormContainer({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  المنطقة / الحي *
+                  المدينة
                 </label>
                 <select
-                  name="district"
-                  value={form.district}
+                  name="city"
+                  value={form.city}
                   onChange={handleChange}
                   className="w-full rounded-lg border border-gray-300 px-4 py-3"
-                  required
                 >
-                  <option value="">اختر المنطقة</option>
-                  {CAIRO_DISTRICTS.map((district, index) => (
-                    <option key={index} value={district}>{district}</option>
-                  ))}
+                  <option value="القاهرة">القاهرة</option>
+                  <option value="الجيزة">الجيزة</option>
                 </select>
               </div>
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  علامة مميزة
+                  العنوان التفصيلي *
                 </label>
-                <select
-                  name="landmark"
-                  value={form.landmark}
+                <input
+                  type="text"
+                  name="address"
+                  value={form.address}
                   onChange={handleChange}
                   className="w-full rounded-lg border border-gray-300 px-4 py-3"
-                >
-                  <option value="">اختر علامة</option>
-                  {LANDMARKS.map((landmark, index) => (
-                    <option key={index} value={landmark}>{landmark}</option>
-                  ))}
-                </select>
+                  placeholder="اكتب العنوان بالتفصيل (المنطقة - الشارع - المبني - الدور)"
+                  required
+                />
               </div>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                الشارع / الميدان *
-              </label>
-              <input
-                type="text"
-                name="streetName"
-                value={form.streetName}
-                onChange={handleChange}
-                className="w-full rounded-lg border border-gray-300 px-4 py-3"
-                placeholder="العنوان بالتفصيل"
-                required
-              />
             </div>
           </div>
 
@@ -192,7 +170,7 @@ export default function FormContainer({
               </div>
             </div>
 
-            {/* ✅ خيارات المحتويات الجديدة */}
+            {/* ✅ خيارات المحتويات */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-3">
                 اختر نوع المحتويات *
@@ -260,7 +238,7 @@ export default function FormContainer({
             <div className="grid grid-cols-2 gap-3">
               <div className="text-center">
                 <div className="text-sm text-gray-600">الحقول المكتملة</div>
-                <div className="text-lg font-bold text-blue-600">{filledFieldsCount}/9</div>
+                <div className="text-lg font-bold text-blue-600">{filledFieldsCount}/8</div>
               </div>
               <div className="text-center">
                 <div className="text-sm text-gray-600">المحتوى</div>

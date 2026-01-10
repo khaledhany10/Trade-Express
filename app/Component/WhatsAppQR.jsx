@@ -6,7 +6,6 @@ import QRCode from "react-qr-code";
 export default function WhatsAppQR({ data }) {
   const [whatsappUrl, setWhatsappUrl] = useState("");
   const [status, setStatus] = useState("idle");
-  const [qrSize, setQrSize] = useState(256);
 
   useEffect(() => {
     if (data && data.customerName) {
@@ -14,41 +13,27 @@ export default function WhatsAppQR({ data }) {
       
       // ✅ بناء رسالة واتساب بطريقة صحيحة
       const buildWhatsAppMessage = () => {
-        // بناء الرسالة خطوة بخطوة
         let message = "";
         message += `📦 *طلب شحنة جديد*\n\n`;
         message += `👤 *العميل:* ${data.customerName || ""}\n`;
         if (data.brandName) message += `🏷️ *البراند:* ${data.brandName}\n`;
         message += `📱 *رقم الواتساب:* ${data.phone || ""}\n\n`;
-        message += `📍 *العنوان:*\n` + `• المنطقة: ${data.district || ""}\n` + `• الشارع: ${data.streetName || ""}\n`;
-        if (data.landmark) message += `• علامة: ${data.landmark}\n\n`;
+        message += `📍 *العنوان:*\n`;
+        message += `• المدينة: ${data.city || ""}\n`;
+        message += `• العنوان التفصيلي: ${data.address || ""}\n\n`;
         message += `📦 *الشحنة:*\n`;
         message += `• النوع: ${data.content || data.customContent || ""}\n`;
         if (data.shipments) message += `• العدد: ${data.shipments}\n`;
-        if (data.pickupDate) message += `• التاريخ: ${data.pickupDate}\n\n`;        
+        if (data.pickupDate) message += `• التاريخ: ${data.pickupDate}\n\n`;
         message += `✅ *تم بواسطة نظام 7TE*`;
         
         return message.trim();
       };
 
       const message = buildWhatsAppMessage();
-      
-      // ✅ رقم واتساب صحيح مع الكود الدولي
-      const whatsappNumber = "201110028075"; // تأكد أن الرقم صحيح
-      
-      // ✅ بناء رابط واتساب بالطريقة الصحيحة
-      // الطريقة الصحيحة: إزالة أي أصفار في البداية وإضافة +
-      const cleanNumber = whatsappNumber.replace(/^0+/, "");
-      const internationalNumber = `+${cleanNumber}`;
-      
-      // ✅ ترميز الرسالة بطريقة صحيحة
+      const whatsappNumber = "201055445581";
       const encodedMessage = encodeURIComponent(message);
-      
-      // ✅ بناء الرابط النهائي
       const url = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
-      
-      // ✅ إضافة رابط بديل للطوارئ
-      const fallbackUrl = `https://api.whatsapp.com/send?phone=${whatsappNumber}&text=${encodedMessage}`;
       
       setWhatsappUrl(url);
       setStatus("ready");
@@ -62,12 +47,6 @@ export default function WhatsAppQR({ data }) {
     if (whatsappUrl) {
       window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
     }
-  };
-
-  // ✅ اختبار QR Code مباشرة برابط بسيط
-  const testSimpleQR = () => {
-    const testUrl = "https://wa.me/201110028075?text=Hello%20Test";
-    window.open(testUrl, '_blank');
   };
 
   if (status === "creating") {
@@ -90,7 +69,6 @@ export default function WhatsAppQR({ data }) {
         </div>
         <p className="text-lg font-bold text-red-600 mb-2">خطأ في البيانات</p>
         <p className="text-gray-600">تأكد من إدخال جميع البيانات المطلوبة</p>
-        
       </div>
     );
   }
@@ -106,7 +84,7 @@ export default function WhatsAppQR({ data }) {
         <p className="text-sm text-gray-600">استخدم كاميرا الهاتف لمسح الكود</p>
       </div>
       
-      {/* ✅ حاوية QR Code مع إعدادات محسنة */}
+      {/* ✅ حاوية QR Code */}
       <div className="relative">
         <div className="absolute -inset-1 bg-gradient-to-r from-green-400 to-blue-500 rounded-2xl blur opacity-30"></div>
         <div className="relative bg-white p-6 rounded-xl shadow-2xl border-2 border-green-300 inline-block">
@@ -114,10 +92,10 @@ export default function WhatsAppQR({ data }) {
             {whatsappUrl ? (
               <QRCode 
                 value={whatsappUrl}
-                size={280} // حجم أكبر لسهولة المسح
+                size={280}
                 bgColor="#FFFFFF"
-                fgColor="#000000" // لون أسود أفضل للمسح
-                level="Q" // مستوى تصحيح أعلى
+                fgColor="#000000"
+                level="Q"
                 style={{ 
                   width: '100%',
                   height: '100%',
@@ -138,20 +116,6 @@ export default function WhatsAppQR({ data }) {
         </div>
       </div>
 
-      {/* ✅ معلومات المسح */}
-      <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-        <h4 className="font-bold text-blue-800 mb-2 flex items-center gap-2">
-          <span>📱</span>
-          <span>كيفية المسح:</span>
-        </h4>
-        <ol className="text-sm text-gray-700 text-right space-y-1">
-          <li>1. افتح تطبيق الكاميرا على هاتفك</li>
-          <li>2. وجه الكاميرا نحو رمز QR أعلاه</li>
-          <li>3. انتظر حتى تظهر نافذة رابط واتساب</li>
-          <li>4. اضغط على الرابط لفتح واتساب</li>
-        </ol>
-      </div>
-
       {/* ✅ زر الإرسال المباشر */}
       <div className="space-y-3">
         <button
@@ -163,7 +127,6 @@ export default function WhatsAppQR({ data }) {
             <span>إضغط هنا لإرسال الطلب مباشرة</span>
           </span>
         </button>
-
       </div>
 
       {/* ✅ بيانات الطلب */}
@@ -176,23 +139,15 @@ export default function WhatsAppQR({ data }) {
           <div className="text-gray-600">الهاتف:</div>
           <div className="font-bold text-blue-600 dir-ltr">{data.phone}</div>
           
+          <div className="text-gray-600">المدينة:</div>
+          <div className="font-bold">{data.city}</div>
+          
           <div className="text-gray-600">العنوان:</div>
-          <div className="font-bold">{data.district}</div>
+          <div className="font-bold">{data.address}</div>
           
           <div className="text-gray-600">المحتويات:</div>
           <div className="font-bold text-purple-600">{data.content || data.customContent}</div>
         </div>
-      </div>
-
-      {/* ✅ استكشاف الأخطاء */}
-      <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-200 text-xs">
-        <p className="font-medium text-yellow-800 mb-1">🔧 إذا لم يعمل المسح:</p>
-        <ol className="text-yellow-700 space-y-1">
-          <li>• تأكد من أن كاميرا الهاتف تركز جيداً على الكود</li>
-          <li>• جرب في إضاءة أفضل</li>
-          <li>• استخدم زر الإرسال المباشر أعلاه</li>
-          <li>• تأكد من تثبيت واتساب على هاتفك</li>
-        </ol>
       </div>
     </div>
   );

@@ -1,13 +1,9 @@
 // app/Component/QRDisplay.jsx
 "use client";
 import WhatsAppQR from "./WhatsAppQR";
-import { FiEdit2, FiX } from "react-icons/fi";
+import { FiX } from "react-icons/fi";
 
 export default function QRDisplay({ form, editData, resetForm }) {
-  // دبيوجنج: شوف البيانات اللي جايه
-  console.log("QRDisplay received form data:", form);
-  console.log("Customer Name:", form.customerName);
-  console.log("Phone:", form.phone);
 
   // بيانات مضمونة
   const qrData = {

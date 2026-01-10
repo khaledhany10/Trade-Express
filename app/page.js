@@ -1,17 +1,9 @@
 // app/page.js
 "use client";
-import { useState, useRef, useCallback, useEffect, useMemo } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import WhatsAppQR from "./Component/WhatsAppQR";
 import FormContainer from "./Component/FormContainer";
 import { FiArrowUp, FiArrowRight } from "react-icons/fi";
-
-// البيانات
-const CAIRO_DISTRICTS = [
-  "المعادي", "المقطم", "مدينة نصر", "التجمع الخامس", "الرحاب", "الشروق",
-  "6 أكتوبر", "الهرم", "الدقي", "المهندسين", "مصر الجديدة", "الزمالك"
-];
-
-const LANDMARKS = ["مدرسة", "مستشفى", "مسجد", "كنيسة", "سوبر ماركت", "بنك"];
 
 // ✅ خيارات المحتويات المحددة
 const CONTENT_OPTIONS = [
@@ -32,14 +24,13 @@ const CONTENT_OPTIONS = [
   { id: "other", label: "أخرى", emoji: "📦" }
 ];
 
-// ✅ INITIAL_FORM_STATE محدث
+// ✅ INITIAL_FORM_STATE مبسط
 const INITIAL_FORM_STATE = {
   customerName: "",
   brandName: "",
   phone: "",
-  district: "",
-  landmark: "",
-  streetName: "",
+  city: "القاهرة", // افتراضي القاهرة
+  address: "", // العنوان التفصيلي
   shipments: "",
   pickupDate: "",
   content: "", // سيكون ID من CONTENT_OPTIONS
@@ -69,9 +60,8 @@ export default function Home() {
       customerName: form.customerName || "",
       brandName: form.brandName || "",
       phone: form.phone || "",
-      district: form.district || "",
-      landmark: form.landmark || "",
-      streetName: form.streetName || "",
+      city: form.city || "", // المدينة
+      address: form.address || "", // العنوان التفصيلي
       shipments: form.shipments || "",
       pickupDate: form.pickupDate || "",
       content: getContentText(), // نص المحتوى
@@ -115,7 +105,7 @@ export default function Home() {
     e.preventDefault();
     
     // التحقق من الحقول المطلوبة
-    if (!form.customerName || !form.phone || !form.district || !form.streetName) {
+    if (!form.customerName || !form.phone || !form.address) {
       alert("⚠️ يرجى ملء جميع الحقول المطلوبة (*)");
       return;
     }
@@ -165,7 +155,7 @@ export default function Home() {
 
   // ✅ التحقق من اكتمال الفورم
   const isFormComplete = useMemo(() => {
-    const required = ['customerName', 'phone', 'district', 'streetName', 'content'];
+    const required = ['customerName', 'phone', 'address', 'content'];
     
     // التحقق من الحقول الأساسية
     let complete = required.every(field => {
@@ -238,8 +228,6 @@ export default function Home() {
             isSubmitting={isSubmitting}
             filledFieldsCount={filledFieldsCount}
             isFormComplete={isFormComplete}
-            CAIRO_DISTRICTS={CAIRO_DISTRICTS}
-            LANDMARKS={LANDMARKS}
             CONTENT_OPTIONS={CONTENT_OPTIONS}
           />
         ) : (
