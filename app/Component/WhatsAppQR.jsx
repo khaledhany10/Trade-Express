@@ -10,7 +10,7 @@ export default function WhatsAppQR({ data }) {
   useEffect(() => {
     if (data && data.customerName) {
       setStatus("creating");
-      
+
       // ✅ بناء رسالة واتساب بطريقة صحيحة
       const buildWhatsAppMessage = () => {
         let message = "";
@@ -20,13 +20,13 @@ export default function WhatsAppQR({ data }) {
         message += `📱 *رقم الواتساب:* ${data.phone || ""}\n\n`;
         message += `📍 *العنوان:*\n`;
         message += `• المدينة: ${data.city || ""}\n`;
-        message += `• العنوان التفصيلي: ${data.address || ""}\n\n`;
+        message += `• التفاصيل: ${data.address || ""}\n\n`;
         message += `📦 *الشحنة:*\n`;
         message += `• النوع: ${data.content || data.customContent || ""}\n`;
         if (data.shipments) message += `• العدد: ${data.shipments}\n`;
         if (data.pickupDate) message += `• التاريخ: ${data.pickupDate}\n\n`;
         message += `✅ *تم بواسطة نظام 7TE*`;
-        
+
         return message.trim();
       };
 
@@ -34,10 +34,9 @@ export default function WhatsAppQR({ data }) {
       const whatsappNumber = "201055445581";
       const encodedMessage = encodeURIComponent(message);
       const url = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
-      
+
       setWhatsappUrl(url);
       setStatus("ready");
-      
     } else {
       setStatus("error");
     }
@@ -45,7 +44,7 @@ export default function WhatsAppQR({ data }) {
 
   const openWhatsApp = () => {
     if (whatsappUrl) {
-      window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+      window.open(whatsappUrl, "_blank", "noopener,noreferrer");
     }
   };
 
@@ -55,7 +54,9 @@ export default function WhatsAppQR({ data }) {
         <div className="w-64 h-64 mx-auto mb-4 bg-gradient-to-br from-blue-50 to-green-50 rounded-xl flex items-center justify-center">
           <div className="text-5xl animate-pulse">⏳</div>
         </div>
-        <p className="text-lg font-bold text-blue-600 mb-2">جاري إنشاء QR Code...</p>
+        <p className="text-lg font-bold text-blue-600 mb-2">
+          جاري إنشاء QR Code...
+        </p>
         <p className="text-gray-600">سيظهر خلال ثواني</p>
       </div>
     );
@@ -83,31 +84,31 @@ export default function WhatsAppQR({ data }) {
         </div>
         <p className="text-sm text-gray-600">استخدم كاميرا الهاتف لمسح الكود</p>
       </div>
-      
+
       {/* ✅ حاوية QR Code */}
       <div className="relative">
         <div className="absolute -inset-1 bg-gradient-to-r from-green-400 to-blue-500 rounded-2xl blur opacity-30"></div>
         <div className="relative bg-white p-6 rounded-xl shadow-2xl border-2 border-green-300 inline-block">
           <div className="w-72 h-72 flex items-center justify-center bg-white p-2 rounded-lg">
             {whatsappUrl ? (
-              <QRCode 
+              <QRCode
                 value={whatsappUrl}
                 size={280}
                 bgColor="#FFFFFF"
                 fgColor="#000000"
                 level="Q"
-                style={{ 
-                  width: '100%',
-                  height: '100%',
-                  padding: '8px',
-                  borderRadius: '8px'
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  padding: "8px",
+                  borderRadius: "8px",
                 }}
               />
             ) : (
               <div className="text-gray-400">Loading QR...</div>
             )}
           </div>
-          
+
           {/* ✅ زوايا زخرفية */}
           <div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-green-500 rounded-tl-lg"></div>
           <div className="absolute top-0 right-0 w-6 h-6 border-t-2 border-r-2 border-green-500 rounded-tr-lg"></div>
@@ -135,18 +136,20 @@ export default function WhatsAppQR({ data }) {
         <div className="grid grid-cols-2 gap-2 text-sm text-right">
           <div className="text-gray-600">العميل:</div>
           <div className="font-bold">{data.customerName}</div>
-          
+
           <div className="text-gray-600">الهاتف:</div>
           <div className="font-bold text-blue-600 dir-ltr">{data.phone}</div>
-          
+
           <div className="text-gray-600">المدينة:</div>
           <div className="font-bold">{data.city}</div>
-          
+
           <div className="text-gray-600">العنوان:</div>
           <div className="font-bold">{data.address}</div>
-          
+
           <div className="text-gray-600">المحتويات:</div>
-          <div className="font-bold text-purple-600">{data.content || data.customContent}</div>
+          <div className="font-bold text-purple-600">
+            {data.content || data.customContent}
+          </div>
         </div>
       </div>
     </div>

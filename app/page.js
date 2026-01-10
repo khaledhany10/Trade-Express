@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect, useMemo } from "react";
 import WhatsAppQR from "./Component/WhatsAppQR";
 import FormContainer from "./Component/FormContainer";
-import { FiArrowUp, FiArrowRight } from "react-icons/fi";
+import { FiArrowUp, FiArrowRight, FiExternalLink } from "react-icons/fi";
 
 // ✅ خيارات المحتويات المحددة
 const CONTENT_OPTIONS = [
@@ -184,25 +184,11 @@ export default function Home() {
       )}
 
       {/* Header */}
-      <header className="sticky top-0 bg-white border-b shadow-sm">
+      <header className="sticky top-0 bg-white border-b shadow-sm z-50">
+        {/* الجزء العلوي */}
         <div className="max-w-4xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg border border-gray-200 flex items-center justify-center bg-white">
-                <img 
-                  src="/logo.png" 
-                  alt="Logo" 
-                  className="w-8 h-6 object-contain"
-                  onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='40'%3E%3Ctext x='32' y='25' text-anchor='middle' font-family='Arial' font-size='20' font-weight='bold' fill='%231F2937'%3E7TE%3C/text%3E%3C/svg%3E";
-                  }}
-                />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-gray-800">نظام طلبات الشحن 7TE</h1>
-                <p className="text-xs text-gray-600">اختر المحتويات من القائمة وارسل عبر واتساب</p>
-              </div>
             </div>
             
             {showQR && (
@@ -214,6 +200,39 @@ export default function Home() {
                 <span>العودة للنموذج</span>
               </button>
             )}
+          </div>
+
+          {/* قسم التعرف علينا */}
+          <div className="mt-4 p-4 bg-linear-to-r from-white to-gray-50 rounded-xl border border-gray-200">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div>
+                <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                  <div className="w-10 h-10 rounded-lg border border-gray-200 flex items-center justify-center bg-white">
+                <img 
+                  src="/logo.png" 
+                  alt="Logo" 
+                  className="w-8 h-6 object-contain"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='40'%3E%3Ctext x='32' y='25' text-anchor='middle' font-family='Arial' font-size='20' font-weight='bold' fill='%231F2937'%3E7TE%3C/text%3E%3C/svg%3E";
+                  }}
+                />
+              </div>
+                 نظام طلبات الشحن 7TE
+                </h2>
+                <p className="text-sm text-gray-600 mt-1">خدمات شحن سريعة وآمنة في القاهرة والجيزة</p>
+              </div>
+              
+              <a
+                href="https://7tradeexpress.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 active:scale-[0.98] whitespace-nowrap text-sm"
+              >
+                <FiExternalLink className="w-4 h-4" />
+                <span>زيارة صفحتنا</span>
+              </a>
+            </div>
           </div>
         </div>
       </header>
